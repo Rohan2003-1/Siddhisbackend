@@ -1,10 +1,16 @@
 const asyncHandler = require('../middlewares/async');
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
 
 // @desc    Process stripe payments
 // @route   POST /api/v1/payment/process
 // @access  Private
 exports.processPayment = asyncHandler(async (req, res, next) => {
+  if (!process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY.startsWith('sk_test_...')) {
+    return next(new Error('Stripe Secret Key is not configured correctly.'));
+  }
+
+  const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
   const paymentIntent = await stripe.paymentIntents.create({
     amount: req.body.amount,
     currency: 'usd',
